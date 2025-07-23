@@ -102,13 +102,20 @@ class LearnHow2useEnv(DirectRLEnv):
         self.velocity = self.robot.data.root_com_vel_w 
         # 小车前进的方向向量在世界坐标系下的表达
         self.forwards = math_utils.quat_apply(self.robot.data.root_link_quat_w, self.robot.data.FORWARD_VEC_B)
-        # 六维度速度和方向作为观测
-        obs = torch.hstack((self.velocity, self.commands))
+        # # 六维度速度和方向作为观测
+        # obs = torch.hstack((self.velocity, self.commands))
+
+        # 为了减少参数量进一步优化，表示成点积、叉积、机器人坐标系下x方向速度
+        self.dot = torch.sum(self.forwards * self.commands, dim=-1, keepdim=True)
+        self.cross = torch.cross(self.forwards, self.commands, dim=-1)[:,-1].reshape(-1,1)
+        self.forward_speed = self.robot.data.root_com_lin_vel_b[:,0].reshape(-1,1)
+        obs = torch.hstack((self.dot, self.cross, self.forward_speed))
+
         observations = {"policy": obs}
 
-        print("[DEBUG] num_envs:", self.cfg.scene.num_envs)
-        print("[DEBUG] velocity shape:", self.robot.data.root_com_vel_w.shape)
-        print("[DEBUG] commands shape:", self.commands.shape)
+        # print("[DEBUG] num_envs:", self.cfg.scene.num_envs)
+        # print("[DEBUG] velocity shape:", self.robot.data.root_com_vel_w.shape)
+        # print("[DEBUG] commands shape:", self.commands.shape)
 
         
         return observations
@@ -117,9 +124,9 @@ class LearnHow2useEnv(DirectRLEnv):
         # total_reward = torch.linalg.norm(self.velocity, dim=-1, keepdim=True)
 
         # 前进方向与命令对齐 以及 速度要尽可能的快
-        forward_reward = self.robot.data.root_com_lin_vel_b[:,0]
-        alignment_reward = torch.sum(self.forwards * self.commands, dim=-1)
-        total_reward = forward_reward + alignment_reward
+        # forward_reward = self.robot.data.root_com_lin_vel_b[:,0]
+        # alignment_reward = torch.sum(self.forwards * self.commands, dim=-1)
+        total_reward = self.forward_speed[:,0]*self.dot[:,0] - torch.abs(self.cross[:,0])
         return total_reward
 
     def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:
