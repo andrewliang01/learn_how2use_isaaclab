@@ -105,6 +105,11 @@ class LearnHow2useEnv(DirectRLEnv):
         # 六维度速度和方向作为观测
         obs = torch.hstack((self.velocity, self.commands))
         observations = {"policy": obs}
+
+        print("[DEBUG] num_envs:", self.cfg.scene.num_envs)
+        print("[DEBUG] velocity shape:", self.robot.data.root_com_vel_w.shape)
+        print("[DEBUG] commands shape:", self.commands.shape)
+
         
         return observations
 
@@ -112,8 +117,8 @@ class LearnHow2useEnv(DirectRLEnv):
         # total_reward = torch.linalg.norm(self.velocity, dim=-1, keepdim=True)
 
         # 前进方向与命令对齐 以及 速度要尽可能的快
-        forward_reward = self.robot.data.root_com_lin_vel_b[:,0].reshape(-1,1)
-        alignment_reward = torch.sum(self.forwards * self.commands, dim=-1, keepdim=True)
+        forward_reward = self.robot.data.root_com_lin_vel_b[:,0]
+        alignment_reward = torch.sum(self.forwards * self.commands, dim=-1)
         total_reward = forward_reward + alignment_reward
         return total_reward
 
