@@ -126,7 +126,7 @@ class LearnHow2useEnv(DirectRLEnv):
         # 前进方向与命令对齐 以及 速度要尽可能的快
         # forward_reward = self.robot.data.root_com_lin_vel_b[:,0]
         # alignment_reward = torch.sum(self.forwards * self.commands, dim=-1)
-        total_reward = self.forward_speed[:,0]*self.dot[:,0] - torch.abs(self.cross[:,0])
+        total_reward = torch.exp(self.forward_speed[:,0])*self.dot[:,0] - torch.abs(self.cross[:,0])
         return total_reward
 
     def _get_dones(self) -> tuple[torch.Tensor, torch.Tensor]:
