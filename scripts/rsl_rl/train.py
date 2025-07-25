@@ -7,13 +7,13 @@
 
 """Launch Isaac Sim Simulator first."""
 
-import argparse
-import sys
+import argparse # 定义和处理命令行参数
+import sys # 用于访问命令行参数和其他系统功能
 
-from isaaclab.app import AppLauncher
+from isaaclab.app import AppLauncher # 用于启动Isaac Lab应用程序
 
 # local imports
-import cli_args  # isort: skip
+import cli_args  # rsl_rl相关配置
 
 
 # add argparse arguments
